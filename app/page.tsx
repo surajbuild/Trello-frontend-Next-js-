@@ -1,21 +1,20 @@
 "use client"
 
-import Image from "next/image";
 import { useState } from "react";
 
 export default function Home() {
   const [taskName, setTaskName] = useState("");
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState<Array<string>>([]);
 
   const handleAddTask = () => {
     if (taskName.trim() !== "") {
-      setTasks([...tasks, taskName]);
+      setTasks((prevTasks) => [...prevTasks, taskName]);
       setTaskName("");
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+    <div className="flex flex-col items-center justify-center h-screen">
       <h1 className="text-4xl font-bold text-gray-800">Trello Clone</h1>
       <div className="mt-8">
         <input
