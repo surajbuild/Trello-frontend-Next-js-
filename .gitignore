@@ -42,3 +42,7 @@ next-env.d.ts
 .aider*
 .claude*
 .history
+/app/generated/prisma
+.agents/
+.windsurf/
+skills-lock.json
