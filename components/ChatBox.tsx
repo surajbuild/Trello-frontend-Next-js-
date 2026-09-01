@@ -66,12 +66,16 @@ export function ChatBox({ initialConversationId, initialMessages }: ChatBoxProps
       if (wasNewConversation) {
         // A brand-new conversation was created. Navigate to its page, which
         // loads the full history (user message + assistant reply) server-side.
+        // refresh() re-renders the (app) layout so the sidebar picks up the
+        // newly created conversation.
         router.push(`/conversation/${data.conversationId}`);
+        router.refresh();
         return;
       }
 
       // Existing conversation: replace the optimistic user bubble if it was
-      // assigned a real id, then append the assistant reply.
+      // assigned a real id, then append the assistant reply. refresh() keeps
+      // the sidebar ordering (updatedAt) in sync.
       setMessages((prev) =>
         prev.map((m) =>
           m.id === optimistic.id && data.message.role === "User"
@@ -80,6 +84,7 @@ export function ChatBox({ initialConversationId, initialMessages }: ChatBoxProps
         )
       );
       setMessages((prev) => [...prev, data.message]);
+      router.refresh();
     } catch (err) {
       const axiosError = err as AxiosError<{ error?: string }>;
       const fallback =
