@@ -1,5 +1,6 @@
 import { prisma } from "@/app/db";
 import { notFound } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth";
 import { ChatBox } from "@/components/ChatBox";
 
 interface PageProps {
@@ -8,9 +9,13 @@ interface PageProps {
 
 export default async function ConversationPage({ params }: PageProps) {
   const { id } = await params;
+  const user = await getCurrentUser();
+  if (!user) {
+    notFound();
+  }
 
-  const conversation = await prisma.conversation.findUnique({
-    where: { id },
+  const conversation = await prisma.conversation.findFirst({
+    where: { id, userId: user.id },
     include: {
       messages: { orderBy: { createdAt: "asc" } },
     },
@@ -28,11 +33,11 @@ export default async function ConversationPage({ params }: PageProps) {
   }));
 
   return (
-    <main className="flex flex-1 p-4 sm:p-6">
+    <div className="flex flex-1 p-4 sm:p-6">
       <ChatBox
         initialConversationId={conversation.id}
         initialMessages={messages}
       />
-    </main>
+    </div>
   );
 }
