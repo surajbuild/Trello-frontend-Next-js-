@@ -1,8 +1,15 @@
 import { prisma } from "@/app/db";
 import { NextRequest } from "next/server";
 import { createAssistantReply } from "@/lib/ai";
+import { ensureConversationTitle } from "@/lib/conversations";
+import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return Response.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const conversationId = searchParams.get("conversationId");
 
@@ -11,8 +18,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
+    const conversation = await prisma.conversation.findFirst({
+      where: { id: conversationId, userId: user.id },
       include: {
         messages: { orderBy: { createdAt: "asc" } },
       },
@@ -30,6 +37,11 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return Response.json({ error: "Not authenticated" }, { status: 401 });
+  }
+
   let body: { content?: unknown; role?: unknown; conversationId?: unknown };
 
   try {
@@ -62,8 +74,8 @@ export async function POST(req: NextRequest) {
 
   try {
     if (conversationId) {
-      const existing = await prisma.conversation.findUnique({
-        where: { id: conversationId },
+      const existing = await prisma.conversation.findFirst({
+        where: { id: conversationId, userId: user.id },
         select: { id: true },
       });
 
@@ -72,15 +84,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create the conversation (if new) and the user message; the assistant
-    // reply is generated afterwards and persisted separately. Using a
-    // transaction keeps the conversation + user message atomic.
     let convoId = conversationId;
 
     await prisma.$transaction(async (tx) => {
       if (!convoId) {
         const conv = await tx.conversation.create({
-          data: { initialPrompt: content },
+          data: { userId: user.id, title: content },
         });
         convoId = conv.id;
       }
@@ -89,6 +98,8 @@ export async function POST(req: NextRequest) {
         data: { content, role: "User", conversationId: convoId },
       });
     });
+
+    await ensureConversationTitle(convoId, content);
 
     const assistantMessage = await createAssistantReply(convoId, content);
 
