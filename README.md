@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trello Chat
 
-## Getting Started
+A Next.js (App Router) AI chat application. Users start a conversation, send a
+message, and the assistant replies. Conversations and messages are persisted to
+PostgreSQL via Prisma.
 
-First, run the development server:
+## Tech stack
+
+- Next.js 16 (App Router) — React 19, TypeScript
+- Tailwind CSS v4
+- PostgreSQL + Prisma ORM 7 (driver adapters)
+- axios (client HTTP)
+
+## Getting started
+
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy `.env.example` to `.env` and fill in your values.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env
+```
 
-## Learn More
+Required for the database:
 
-To learn more about Next.js, take a look at the following resources:
+```
+DATABASE_URL=postgresql://postgres:yourpassword@localhost:5432/postgres
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To enable real AI responses, provide an OpenAI-compatible endpoint:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+AI_BASE_URL=https://api.openai.com/v1   # or a compatible endpoint (Groq, etc.)
+AI_API_KEY=sk-...
+AI_MODEL=gpt-4o-mini                    # optional, default gpt-4o-mini
+```
 
-## Deploy on Vercel
+If `AI_BASE_URL` / `AI_API_KEY` are left unset, the assistant falls back to a
+deterministic offline responder so the app remains usable.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 3. Set up the database
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+bunx prisma migrate dev
+bunx prisma generate
+```
+
+### 4. Run
+
+```bash
+bun run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+## Environment variables
+
+| Variable       | Required | Description                                                            |
+| -------------- | -------- | ---------------------------------------------------------------------- |
+| `DATABASE_URL` | Yes      | PostgreSQL connection string.                                          |
+| `AI_BASE_URL`  | No       | Base URL of an OpenAI-compatible chat completions API. Offline fallback if omitted. |
+| `AI_API_KEY`   | No       | API key for the endpoint above.                                        |
+| `AI_MODEL`     | No       | Model name (default `gpt-4o-mini`).                                    |
+| `AI_TIMEOUT_MS`| No       | Upstream request timeout in ms (default `60000`).                      |
+
+## Scripts
+
+- `bun run dev` — development server (Turbopack). Use `bun run dev --webpack` if you hit Turbopack HMR panics.
+- `bun run build` — production build
+- `bun run start` — start the production server
+- `bun run lint` — ESLint
