@@ -1,13 +1,12 @@
-"use client"
 
-import { useState } from "react";
+import { ChatBox } from "@/components/ChatBox";
 
 export default function Home() {
-  const [inputValue, setInputValue] = useState("");
-
   return (
-    <div>
-      
+    <div className="flex items-center justify-center h-screen w-screen">
+      <div>
+        <ChatBox />
+      </div>
     </div>
   );
 }
