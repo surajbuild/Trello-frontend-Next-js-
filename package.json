@@ -12,6 +12,8 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "7.10.0",
     "axios": "^1.20.0",
+    "bcrypt": "^6.0.0",
+    "jose": "^6.2.10",
     "next": "16.3.2",
     "pg": "^8.23.0",
     "react": "19.2.8",
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
