@@ -28,13 +28,11 @@ export default async function ConversationPage({ params }: PageProps) {
   }));
 
   return (
-    <div className="flex items-center justify-center h-screen w-screen">
-      <div>
-        <ChatBox
-          initialConversationId={conversation.id}
-          initialMessages={messages}
-        />
-      </div>
-    </div>
+    <main className="flex flex-1 p-4 sm:p-6">
+      <ChatBox
+        initialConversationId={conversation.id}
+        initialMessages={messages}
+      />
+    </main>
   );
 }
