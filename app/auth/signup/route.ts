@@ -1,13 +1,13 @@
 import { prisma } from "@/app/db";
 import { NextRequest } from "next/server";
 import {
-  createToken,
   hashPassword,
   isValidEmail,
   isValidName,
   isValidPassword,
-  setAuthCookie,
 } from "@/lib/auth";
+import { generateVerificationToken } from "@/lib/verification";
+import { sendVerificationEmail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
   let body: { name?: unknown; email?: unknown; password?: unknown };
@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
       select: { id: true, name: true, email: true },
     });
 
-    const token = await createToken({ id: user.id, name: user.name, email: user.email });
-    await setAuthCookie(token);
+    const token = await generateVerificationToken(user.id);
+    await sendVerificationEmail(user.email, user.name, token);
 
-    return Response.json({ user }, { status: 201 });
+    return Response.json({ user, message: "Verification email sent" }, { status: 201 });
   } catch (error) {
     console.error("Error signing up:", error);
     return Response.json({ error: "Failed to create account" }, { status: 500 });
