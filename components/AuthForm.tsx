@@ -27,12 +27,25 @@ export function AuthForm({ mode }: AuthFormProps) {
       const payload = isLogin
         ? { email, password }
         : { name, email, password };
-      await axios.post(`/auth/${mode}`, payload);
-      router.push("/");
-      router.refresh();
+      const res = await axios.post(`/auth/${mode}`, payload);
+
+      if (isLogin) {
+        router.push("/");
+        router.refresh();
+      } else {
+        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+      }
     } catch (err) {
       const axiosError = err as AxiosError<{ error?: string }>;
-      setError(axiosError?.response?.data?.error ?? "Something went wrong. Please try again.");
+      const errorMsg = axiosError?.response?.data?.error ?? "Something went wrong. Please try again.";
+
+      if (isLogin && errorMsg.includes("verify your email")) {
+        setError(
+          `${errorMsg} `
+        );
+      } else {
+        setError(errorMsg);
+      }
       setLoading(false);
     }
   };
@@ -101,9 +114,17 @@ export function AuthForm({ mode }: AuthFormProps) {
           </div>
 
           {error && (
-            <p className="rounded-md bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm text-red-600 dark:text-red-400">
-              {error}
-            </p>
+            <div className="rounded-md bg-red-50 dark:bg-red-950/40 px-3 py-2 text-sm text-red-600 dark:text-red-400">
+              <p>{error}</p>
+              {isLogin && (
+                <Link
+                  href={`/api/auth/resend-verification?email=${encodeURIComponent(email)}`}
+                  className="mt-1 inline-block font-medium underline"
+                >
+                  Resend verification email
+                </Link>
+              )}
+            </div>
           )}
 
           <button
